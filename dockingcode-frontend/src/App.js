@@ -6,8 +6,8 @@ function App() {
   const [docs, setDocs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [eta, setEta] = useState("");
   const [error, setError] = useState("");
-
   const validateGithubUrl = (url) => {
     try {
       const githubRegex = /^https?:\/\/github\.com\/([^\/]+)\/([^\/]+)\/?$/;
@@ -47,20 +47,16 @@ function App() {
     setError("");
     setDocs([]);
     setProgress(0);
+    setEta("");
 
     try {
       const { owner, repo } = validateGithubUrl(repoUrl);
-
-      // Make API request
       const response = await fetch(`http://localhost:5000/api/generate-docs`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({
-          owner,
-          repo,
-        }),
+        body: JSON.stringify({ owner, repo }),
       });
 
       if (!response.ok) {
@@ -68,24 +64,27 @@ function App() {
         throw new Error(errorMessage);
       }
 
-      // Clone the response to use for progress tracking
-      const clonedResponse = response.clone();
-      
-      // Handle progress tracking
-      const reader = clonedResponse.body.getReader();
+      const reader = response.body.getReader();
       let receivedLength = 0;
       const contentLength = +response.headers.get("Content-Length") || 0;
+      const startTime = Date.now();
 
       while (true) {
         const { done, value } = await reader.read();
         if (done) break;
+
         receivedLength += value.length;
         if (contentLength > 0) {
-          setProgress(Math.round((receivedLength / contentLength) * 100));
+          const progress = Math.round((receivedLength / contentLength) * 100);
+          setProgress(progress);
+
+          const elapsedTime = (Date.now() - startTime) / 1000; // in seconds
+          const estimatedTotalTime = (elapsedTime / progress) * 100; // in seconds
+          const remainingTime = estimatedTotalTime - elapsedTime;
+          setEta(`ETA: ${Math.round(remainingTime)} seconds`);
         }
       }
 
-      // Use the original response for JSON parsing
       const data = await response.json();
       setDocs(data.documentation || []);
     } catch (err) {
@@ -93,6 +92,7 @@ function App() {
     } finally {
       setLoading(false);
       setProgress(100);
+      setEta("");
     }
   };
 
@@ -102,7 +102,6 @@ function App() {
         <h1>DockingCode</h1>
         <p>Generate and publish documentation from your source code</p>
       </header>
-
       <main>
         <form onSubmit={handleSubmit} className="input-form">
           <div className="input-wrapper">
@@ -128,17 +127,15 @@ function App() {
             {loading ? "Generating..." : "Generate Docs"}
           </button>
         </form>
-
         {error && <div className="error">{error}</div>}
-
         {loading && (
           <div className="loading">
             <div className="loading-spinner"></div>
             <p>Analyzing repository and generating documentation...</p>
             <p>Progress: {progress}%</p>
+            <p>{eta}</p>
           </div>
         )}
-
         {docs.length > 0 && (
           <div className="docs-section">
             <h2>Generated Documentation</h2>
@@ -196,5 +193,4 @@ function App() {
     </div>
   );
 }
-
 export default App;
