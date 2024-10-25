@@ -1,10 +1,5 @@
-{"level":"info","message":"Server started","port":5000,"timestamp":"2024-10-25T13:03:29.756Z"}
-{"level":"info","message":"Documentation generation started","owner":"Ayushkiller","repo":"DocingCodeV1","timestamp":"2024-10-25T13:03:33.547Z"}
-{"level":"info","message":"Cloning repository","owner":"Ayushkiller","repo":"DocingCodeV1","repoPath":"C:\\Users\\malik\\AppData\\Local\\Temp\\dockingcode\\Ayushkiller-DocingCodeV1-1729861413548","timestamp":"2024-10-25T13:03:33.549Z"}
-{"level":"info","message":"Repository cloned successfully","owner":"Ayushkiller","repo":"DocingCodeV1","timestamp":"2024-10-25T13:03:38.042Z"}
-{"fileCount":94,"level":"info","message":"Files found in repository","timestamp":"2024-10-25T13:03:38.058Z"}
-{"documentsGenerated":3,"filesProcessed":94,"level":"info","message":"Documentation generation completed","timestamp":"2024-10-25T13:09:20.679Z"}
-{"level":"info","message":"Cloning wiki repository","owner":"Ayushkiller","repo":"DocingCodeV1","timestamp":"2024-10-25T13:09:20.680Z"}
-{"level":"info","message":"Wiki updated successfully","owner":"Ayushkiller","repo":"DocingCodeV1","timestamp":"2024-10-25T13:09:25.228Z"}
-{"level":"info","message":"Cleanup completed","path":"C:\\Users\\malik\\AppData\\Local\\Temp\\dockingcode\\Ayushkiller-DocingCodeV1-wiki-1729861760680","timestamp":"2024-10-25T13:09:25.263Z"}
-{"level":"info","message":"Cleanup completed","path":"C:\\Users\\malik\\AppData\\Local\\Temp\\dockingcode\\Ayushkiller-DocingCodeV1-1729861413548","timestamp":"2024-10-25T13:09:25.314Z"}
+{"level":"info","message":"Server started","port":5000,"timestamp":"2024-10-25T17:31:59.129Z"}
+{"level":"info","message":"Documentation generation started","owner":"Thisiscooliguess","repo":"Towerdefense","timestamp":"2024-10-25T17:32:18.498Z"}
+{"level":"info","message":"Cloning repository","owner":"Thisiscooliguess","repo":"Towerdefense","repoPath":"C:\\Users\\malik\\AppData\\Local\\Temp\\dockingcode\\Thisiscooliguess-Towerdefense-1729877538499","timestamp":"2024-10-25T17:32:18.499Z"}
+{"level":"info","message":"Repository cloned successfully","owner":"Thisiscooliguess","repo":"Towerdefense","timestamp":"2024-10-25T17:32:24.033Z"}
+{"fileCount":86,"level":"info","message":"Files found in repository","timestamp":"2024-10-25T17:32:24.048Z"}
