@@ -1,0 +1,2 @@
+{"command":"git commit -m \"Update documentation\"","error":"Command failed: git commit -m \"Update documentation\"\n","level":"error","message":"Wiki update failed","owner":"Ayushkiller","repo":"Xenoforge","timestamp":"2024-10-24T17:11:00.546Z"}
+{"error":"Command failed: git commit -m \"Update documentation\"\n","level":"error","message":"Wiki publishing failed","owner":"Ayushkiller","repo":"Xenoforge","timestamp":"2024-10-24T17:11:00.567Z"}

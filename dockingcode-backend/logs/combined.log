@@ -1,0 +1,12 @@
+{"level":"info","message":"Server started","port":5000,"timestamp":"2024-10-24T17:08:57.814Z"}
+{"level":"info","message":"Documentation generation started","owner":"Ayushkiller","repo":"Xenoforge","timestamp":"2024-10-24T17:09:03.704Z"}
+{"level":"info","message":"Cloning repository","owner":"Ayushkiller","repo":"Xenoforge","repoPath":"C:\\Users\\malik\\AppData\\Local\\Temp\\dockingcode\\Ayushkiller-Xenoforge-1729789743704","timestamp":"2024-10-24T17:09:03.704Z"}
+{"level":"info","message":"Repository cloned successfully","owner":"Ayushkiller","repo":"Xenoforge","timestamp":"2024-10-24T17:10:56.831Z"}
+{"fileCount":1146,"level":"info","message":"Files found in repository","timestamp":"2024-10-24T17:10:56.892Z"}
+{"documentsGenerated":346,"filesProcessed":1146,"level":"info","message":"Documentation generation completed","timestamp":"2024-10-24T17:10:57.197Z"}
+{"level":"info","message":"Cloning wiki repository","owner":"Ayushkiller","repo":"Xenoforge","timestamp":"2024-10-24T17:10:57.199Z"}
+{"command":"git commit -m \"Update documentation\"","error":"Command failed: git commit -m \"Update documentation\"\n","level":"error","message":"Wiki update failed","owner":"Ayushkiller","repo":"Xenoforge","timestamp":"2024-10-24T17:11:00.546Z"}
+{"level":"info","message":"Cleanup completed","path":"C:\\Users\\malik\\AppData\\Local\\Temp\\dockingcode\\Ayushkiller-Xenoforge-wiki-1729789857199","timestamp":"2024-10-24T17:11:00.567Z"}
+{"error":"Command failed: git commit -m \"Update documentation\"\n","level":"error","message":"Wiki publishing failed","owner":"Ayushkiller","repo":"Xenoforge","timestamp":"2024-10-24T17:11:00.567Z"}
+{"duration":116877,"ip":"::1","level":"info","message":"Request processed","method":"POST","path":"/api/generate-docs","statusCode":200,"timestamp":"2024-10-24T17:11:00.581Z"}
+{"level":"info","message":"Cleanup completed","path":"C:\\Users\\malik\\AppData\\Local\\Temp\\dockingcode\\Ayushkiller-Xenoforge-1729789743704","timestamp":"2024-10-24T17:11:00.800Z"}
