@@ -269,7 +269,6 @@ const generateWikiContent = (documentation) => {
   }, '# API Documentation\n\n');
 };
 
-// Wiki publishing functions
 const publishToWiki = async (owner, repo, wikiContent) => {
   const wikiPath = path.join(TEMP_DIR, `${owner}-${repo}-wiki-${Date.now()}`);
   
@@ -285,7 +284,11 @@ const publishToWiki = async (owner, repo, wikiContent) => {
     await execAsync('git add Home.md', { cwd: wikiPath });
     await execAsync('git commit -m "Update documentation"', { cwd: wikiPath });
     
-    const gitPushCmd = `git push https://${process.env.GITHUB_TOKEN}@github.com/${owner}/${repo}.wiki.git master`;
+    // Determine the default branch
+    const { stdout: branchOutput } = await execAsync('git symbolic-ref refs/remotes/origin/HEAD', { cwd: wikiPath });
+    const defaultBranch = branchOutput.split('/').pop().trim();
+    
+    const gitPushCmd = `git push origin ${defaultBranch}`;
     await execAsync(gitPushCmd, { cwd: wikiPath });
     
     logger.info('Wiki updated successfully', { owner, repo });
@@ -303,13 +306,12 @@ const publishToWiki = async (owner, repo, wikiContent) => {
       await cleanup(wikiPath);
     } catch (cleanupError) {
       logger.error('Wiki cleanup failed', { 
-        path: wikiPath, 
-        error: cleanupError.message 
+        path: wikiPath,
+        error: cleanupError.message
       });
     }
   }
 };
-
 // Main API endpoint
 app.post('/api/generate-docs', async (req, res) => {
   const { owner, repo } = req.body;
