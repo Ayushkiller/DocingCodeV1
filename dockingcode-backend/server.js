@@ -7,8 +7,12 @@ const { exec } = require('child_process');
 const util = require('util');
 const WebSocket = require('ws');
 const winston = require('winston');
+<<<<<<< Updated upstream
 const fetch = require('node-fetch');
 
+=======
+const os = require('os');
+>>>>>>> Stashed changes
 // Configure logger
 const logger = winston.createLogger({
   level: 'info',
@@ -47,9 +51,16 @@ const execAsync = util.promisify(exec);
 const TEMP_DIR = path.join(require('os').tmpdir(), 'dockingcode');
 const ALLOWED_EXTENSIONS = ['.js', '.jsx', '.py', '.java', '.ts', '.html', '.css'];
 
+// Initialize DocumentationService
+const DocumentationService = require('./DocumentationService');
+const docService = new DocumentationService({ 
+  logger,
+  tempDir: TEMP_DIR
+});
+
 // Basic setup
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '50mb' }));
 const wss = new WebSocket.Server({ port: 5001 });
 const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
 
@@ -96,21 +107,27 @@ Provide a technical description in the following format:
 }
 
 // Helper functions
-const sendProgress = (ws, stage, progress) => {
+const sendProgress = (ws, stage, progress, details = null) => {
   if (ws?.readyState === WebSocket.OPEN) {
-    ws.send(JSON.stringify({ stage, progress }));
+    ws.send(JSON.stringify({ 
+      stage, 
+      progress,
+      ...(details && { details })
+    }));
     logger.debug('Progress update sent', { stage, progress });
   }
 };
 
 const cleanup = async (path) => {
   try {
-    const cmd = process.platform === 'win32' ? `rmdir /s /q "${path}"` : `rm -rf "${path}"`;
+    if (!path) return;
+    const cmd = process.platform === 'win32' ? 
+      `rmdir /s /q "${path}"` : 
+      `rm -rf "${path}"`;
     await execAsync(cmd);
     logger.info('Cleanup completed', { path });
   } catch (error) {
     logger.error('Cleanup failed', { path, error: error.message });
-    throw error;
   }
 };
 
@@ -119,7 +136,24 @@ const cloneRepo = async (owner, repo) => {
   try {
     logger.info('Cloning repository', { owner, repo, repoPath });
     await fs.mkdir(TEMP_DIR, { recursive: true });
-    await execAsync(`git clone git@github.com:${owner}/${repo}.git ${repoPath}`);
+    
+    // Try HTTPS first
+    try {
+      await execAsync(
+        `git clone https://github.com/${owner}/${repo}.git ${repoPath}`
+      );
+    } catch (httpsError) {
+      // If HTTPS fails, try SSH
+      logger.warn('HTTPS clone failed, trying SSH', { 
+        owner, 
+        repo, 
+        error: httpsError.message 
+      });
+      await execAsync(
+        `git clone git@github.com:${owner}/${repo}.git ${repoPath}`
+      );
+    }
+    
     logger.info('Repository cloned successfully', { owner, repo });
     return repoPath;
   } catch (error) {
@@ -129,10 +163,11 @@ const cloneRepo = async (owner, repo) => {
       error: error.message,
       command: error.cmd
     });
-    throw error;
+    throw new Error(`Failed to clone repository: ${error.message}`);
   }
 };
 
+<<<<<<< Updated upstream
 // Documentation generator
 const generateDocumentation = async (filePath) => {
   const extension = path.extname(filePath);
@@ -266,6 +301,9 @@ const generateWikiContent = (documentation) => {
 };
 
 // Wiki publishing functions
+=======
+
+>>>>>>> Stashed changes
 const publishToWiki = async (owner, repo, wikiContent) => {
   const wikiPath = path.join(TEMP_DIR, `${owner}-${repo}-wiki-${Date.now()}`);
   
@@ -306,62 +344,83 @@ const publishToWiki = async (owner, repo, wikiContent) => {
   }
 };
 
+<<<<<<< Updated upstream
 // Main API endpoint
 app.post('/api/generate-docs', async (req, res) => {
   const { owner, repo } = req.body;
   let repoPath = null;
+=======
+
+// Main documentation endpoint
+app.post('/api/generate-docs', async (req, res) => {
+  const { owner, repo } = req.body;
+  let repoPath = null;
+  let wikiPath = null;
+  const ws = Array.from(wss.clients)[0];
+>>>>>>> Stashed changes
 
   logger.info('Documentation generation started', { owner, repo });
 
   try {
-    const ws = Array.from(wss.clients)[0];
+    // Clone repository
     repoPath = await cloneRepo(owner, repo);
-    sendProgress(ws, "Repository cloned", 30);
+    sendProgress(ws, "Repository cloned", 20);
 
+    // Process files
     const documentation = [];
     const files = await fs.readdir(repoPath, { recursive: true });
-    logger.info('Files found in repository', { fileCount: files.length });
+    const totalFiles = files.length;
     
-    for (const [index, file] of files.entries()) {
+    let processedFiles = 0;
+    for (const file of files) {
       const filePath = path.join(repoPath, file);
       const stats = await fs.stat(filePath);
 
-      if (!stats.isDirectory() && stats.size <= 5 * 1024 * 1024 && !file.includes('node_modules')) {
-        const docs = await generateDocumentation(filePath);
-        if (docs) {
-          documentation.push({ fileName: file, content: docs });
+      if (!stats.isDirectory() && 
+          stats.size <= 5 * 1024 * 1024 && 
+          !file.includes('node_modules')) {
+        
+        try {
+            // Get file content
+            const content = await fs.readFile(filePath, 'utf-8');
+            // Generate AI analysis
+            const aiAnalysis = await docService.generateCompletion(content);
+            
+            documentation.push({ 
+              fileName: file, 
+              content: aiAnalysis
+            });
+          processedFiles++;
+          sendProgress(ws, "Generating documentation", 
+            20 + (processedFiles / totalFiles * 40));
+        } catch (error) {
+          logger.warn(`Failed to process file ${file}`, { 
+            error: error.message 
+          });
+          continue;
         }
       }
-
-      sendProgress(ws, "Generating documentation", 30 + (index / files.length * 40));
     }
 
-    logger.info('Documentation generation completed', {
-      filesProcessed: files.length,
-      documentsGenerated: documentation.length
+    // Generate wiki content
+    sendProgress(ws, "Generating wiki structure", 70);
+    const wikiStructure = await docService.generateDocs(files);
+
+    // Write to wiki
+    wikiPath = path.join(TEMP_DIR, `${owner}-${repo}-wiki-${Date.now()}`);
+    await docService.writeWikiContent(wikiPath, wikiStructure);
+    sendProgress(ws, "Writing wiki content", 90);
+
+    // Publish to GitHub wiki
+    const wikiUrl = await publishToWiki(owner, repo, wikiPath);
+    sendProgress(ws, "Completed", 100);
+
+    res.json({ 
+      documentation,
+      wikiUrl,
+      structure: wikiStructure
     });
 
-    try {
-      const wikiContent = generateWikiContent(documentation);
-      const wikiUrl = await publishToWiki(owner, repo, wikiContent);
-      
-      sendProgress(ws, "Completed", 100);
-      res.json({ 
-        documentation,
-        wikiUrl
-      });
-    } catch (wikiError) {
-      logger.error('Wiki publishing failed', {
-        owner,
-        repo,
-        error: wikiError.message
-      });
-      sendProgress(ws, "Completed with wiki error", 100);
-      res.json({ 
-        documentation,
-        wikiError: wikiError.message
-      });
-    }
   } catch (error) {
     logger.error('Documentation generation failed', {
       owner,
@@ -369,11 +428,26 @@ app.post('/api/generate-docs', async (req, res) => {
       error: error.message,
       stack: error.stack
     });
+    
+    // Send error to WebSocket client
+    if (ws?.readyState === WebSocket.OPEN) {
+      ws.send(JSON.stringify({ 
+        stage: "error", 
+        error: error.message 
+      }));
+    }
+    
     res.status(500).json({ error: error.message });
   } finally {
+<<<<<<< Updated upstream
     if (repoPath) {
       await cleanup(repoPath);
     }
+=======
+    // Cleanup
+    await cleanup(repoPath);
+    await cleanup(wikiPath);
+>>>>>>> Stashed changes
   }
 });
 
@@ -391,15 +465,26 @@ app.use((err, req, res, next) => {
 wss.on('connection', (ws) => {
   logger.info('WebSocket client connected');
   ws.on('close', () => logger.info('WebSocket client disconnected'));
+  ws.on('error', (error) => {
+    logger.error('WebSocket error', { error: error.message });
+  });
 });
 
+<<<<<<< Updated upstream
 // Start the server
+=======
+// Start server
+>>>>>>> Stashed changes
 const port = process.env.PORT || 5000;
 app.listen(port, () => {
   logger.info(`Server started`, { port, environment: process.env.NODE_ENV });
 });
 
+<<<<<<< Updated upstream
 // Global error handlers
+=======
+// Process error handling
+>>>>>>> Stashed changes
 process.on('uncaughtException', (error) => {
   logger.error('Uncaught exception', {
     error: error.message,
@@ -413,4 +498,10 @@ process.on('unhandledRejection', (error) => {
     error: error.message,
     stack: error.stack
   });
+<<<<<<< Updated upstream
 });
+=======
+});
+
+module.exports = app;
+>>>>>>> Stashed changes
